@@ -1,0 +1,63 @@
+# Binaries
+camgo-scrcpy
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output of go coverage
+*.out
+
+# Go workspace file
+go.work
+
+# Vendor directory (if using modules)
+/vendor
+
+# IDE - VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history
+
+# IDE - GoLand
+.idea/
+
+# IDE - Vim
+*.swp
+*.swo
+*~
+
+# IDE - Emacs
+*~
+\#*\#
+.\#*
+
+# IDE - Sublime Text
+*.sublime-*
+
+# IDE - Nano
+*.save
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files (security)
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+*.tmp
+*.bak
+*.orig

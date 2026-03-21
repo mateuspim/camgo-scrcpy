@@ -1,0 +1,44 @@
+project_name: camgo-scrcpy
+
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - id: camgo-scrcpy
+    main: .
+    binary: camgo-scrcpy
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - format: tar.gz
+    format_name: tar.gz
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+snapshot:
+  name_template: "{{ .Tag }}-next"
+
+release:
+  github:
+    owner: pym
+    name: camgo-scrcpy
+  prerelease: auto

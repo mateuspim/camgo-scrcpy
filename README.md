@@ -56,13 +56,20 @@ sudo mv camgo-scrcpy /usr/local/bin/
 
 ### 2. Load the v4l2loopback Module
 
-```bash
-# Load with default settings
-sudo modprobe v4l2loopback
+Load with two virtual devices — one for the Android camera stream, one for OBS Virtual Camera output:
 
-# Or with custom video device
-sudo modprobe v4l2loopback devices=1 video_nr=10 card_label="Android Webcam"
+```bash
+sudo modprobe v4l2loopback devices=2 exclusive_caps=1,1 card_label="Android Webcam,OBS Virtual Camera"
 ```
+
+**Make it persistent across reboots:**
+
+```bash
+echo 'options v4l2loopback devices=2 exclusive_caps=1,1 card_label="Android Webcam,OBS Virtual Camera"' | sudo tee /etc/modprobe.d/v4l2loopback.conf
+echo "v4l2loopback" | sudo tee /etc/modules-load.d/v4l2loopback.conf
+```
+
+> `exclusive_caps=1` is required for OBS and other apps to properly detect the virtual devices.
 
 ### 3. Run camgo-scrcpy
 
@@ -72,11 +79,13 @@ sudo modprobe v4l2loopback devices=1 video_nr=10 card_label="Android Webcam"
 
 ### 4. Use as Webcam
 
-Once streaming, your virtual camera will appear as `/dev/video10` (or `/dev/video0`):
+Once streaming, your Android camera is available as a virtual webcam:
 
-- **Zoom** - Use any video conferencing app (Google Meet, Zoom, OBS, etc.)
-- **OBS Studio** - Add a Video Capture Device and select "Android Webcam"
+- **OBS Studio** - Add a **Video Capture Device** source and select "Android Webcam". OBS Virtual Camera will use the second loopback device automatically.
+- **Zoom / Google Meet** - Select "Android Webcam" in camera settings
 - **Cheese/Webcamoid** - Works out of the box
+
+> Start camgo-scrcpy and wait for **STREAMING ATIVO** before opening OBS or adding the capture source.
 
 ## Controls
 
@@ -132,10 +141,15 @@ Once streaming, your virtual camera will appear as `/dev/video10` (or `/dev/vide
 
 - Ensure scrcpy version 3.0+ is installed (older versions don't support camera source)
 
-### "v4l2-sink failed"
+### "v4l2-sink failed" / "no loopback device found"
 
 - Make sure v4l2loopback module is loaded: `ls /dev/video*`
-- If missing: `sudo modprobe v4l2loopback`
+- If missing: `sudo modprobe v4l2loopback devices=2 exclusive_caps=1,1 card_label="Android Webcam,OBS Virtual Camera"`
+
+### OBS "Failed to start virtual camera"
+
+- Load v4l2loopback with `devices=2` so OBS has its own dedicated loopback device (see step 2)
+- Make sure camgo-scrcpy is running before trying to start OBS Virtual Camera
 
 ### High latency
 

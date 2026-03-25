@@ -43,16 +43,22 @@ type Resolution struct {
 	Value int    // O valor para o scrcpy (ex: 1920). 0 = Nativa
 }
 
+type scrcpyStartedMsg struct {
+	cmd *exec.Cmd
+	err error
+}
+
 type model struct {
 	devices      []string
 	resolutions  []Resolution
 	cursor       int
-	
+
 	// Seleções do usuário
 	selectedDev  string
 	selectedCam  string // "back" ou "front"
 	selectedRes  int    // valor da resolução
-	
+
+	scrcpyProc   *exec.Cmd
 	err          error
 	state        int      // 0: Lista, 1: Câmera, 2: Resolução, 3: Rodando
 	missingDeps  []string
@@ -91,9 +97,21 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
+	case scrcpyStartedMsg:
+		if msg.err != nil {
+			m.err = msg.err
+			m.state = 0
+		} else {
+			m.scrcpyProc = msg.cmd
+		}
+		return m, nil
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
+			if m.scrcpyProc != nil {
+				m.scrcpyProc.Process.Kill()
+			}
 			return m, tea.Quit
 
 		case "up", "k":
@@ -146,12 +164,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.state == 0 {
 				m.devices = getAdbDevices()
 			}
-			// Se estiver rodando, r reinicia o processo
 			if m.state == 3 {
+				if m.scrcpyProc != nil {
+					m.scrcpyProc.Process.Kill()
+					m.scrcpyProc = nil
+				}
 				m.state = 0
 				m.cursor = 0
 				m.devices = getAdbDevices()
-				// Aqui precisaria matar o processo antigo, mas para simplificar, voltamos ao menu
 			}
 		}
 	
@@ -268,12 +288,27 @@ func getAdbDevices() []string {
 	return devices
 }
 
+func findLoopbackDevice() string {
+	for i := 0; i < 64; i++ {
+		dev := fmt.Sprintf("/dev/video%d", i)
+		if _, err := os.Stat(dev); err != nil {
+			continue
+		}
+		// Real hardware devices have a sysfs "device" symlink; v4l2loopback does not
+		deviceLink := fmt.Sprintf("/sys/class/video4linux/video%d/device", i)
+		if _, err := os.Stat(deviceLink); err == nil {
+			continue // real hardware device, skip
+		}
+		return dev
+	}
+	return ""
+}
+
 func startScrcpy(serial, facing string, resolution int) tea.Cmd {
 	return func() tea.Msg {
-		// Tenta encontrar a porta 10 primeiro, senão vai na 0
-		videoDevice := "/dev/video10"
-		if _, err := os.Stat(videoDevice); os.IsNotExist(err) {
-			videoDevice = "/dev/video0"
+		videoDevice := findLoopbackDevice()
+		if videoDevice == "" {
+			return scrcpyStartedMsg{err: fmt.Errorf("nenhum dispositivo v4l2loopback encontrado.\nExecute: sudo modprobe v4l2loopback")}
 		}
 
 		args := []string{
@@ -281,26 +316,22 @@ func startScrcpy(serial, facing string, resolution int) tea.Cmd {
 			"--video-source=camera",
 			"--camera-facing=" + facing,
 			"--no-audio",
-			"--no-playback",            // <--- CORREÇÃO: Nova flag do Scrcpy 3+
+			"--no-playback",
 			"--v4l2-sink=" + videoDevice,
-			"--video-codec=h264",       // Essencial para Samsung S24/Novos
+			"--video-codec=h264",
 		}
 
 		if resolution > 0 {
 			args = append(args, "--max-size", strconv.Itoa(resolution))
 		} else {
-			// Segurança: Evita 4K nativo que trava o driver
 			args = append(args, "--max-size", "1920")
 		}
 
 		cmd := exec.Command("scrcpy", args...)
-		
-		// Captura o erro detalhado
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			return fmt.Errorf("Falha no dispositivo %s:\n%s", videoDevice, string(output))
+		if err := cmd.Start(); err != nil {
+			return scrcpyStartedMsg{err: fmt.Errorf("falha ao iniciar scrcpy: %w", err)}
 		}
-		return nil
+		return scrcpyStartedMsg{cmd: cmd}
 	}
 }
 

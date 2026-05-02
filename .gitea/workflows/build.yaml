@@ -8,24 +8,21 @@ on:
   workflow_dispatch:
 
 env:
-  GO_VERSION: "1.21"
+  GO_VERSION: "1.23"
   APP_NAME: camgo-scrcpy
 
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: ["1.21", "1.22", "1.23"]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Go ${{ matrix.go-version }}
+      - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Get dependencies
         run: go mod download
@@ -38,7 +35,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.APP_NAME }}-linux-amd64-go${{ matrix.go-version }}
+          name: ${{ env.APP_NAME }}-linux-amd64-go${{ env.GO_VERSION }}
           path: ${{ env.APP_NAME }}-linux-amd64
           retention-days: 7
 

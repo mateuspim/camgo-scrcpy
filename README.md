@@ -1,6 +1,6 @@
 # camgo-scrcpy
 
-![camgo logo](assets/camgo-logo.png)
+<img src="assets/camgo-logo-transparent.png" alt="camgo logo" width="160" />
 
 **Turn your Android phone into a webcam using scrcpy with a beautiful terminal UI.**
 

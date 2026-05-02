@@ -1,5 +1,7 @@
 # camgo-scrcpy
 
+![camgo logo](assets/camgo-logo.png)
+
 **Turn your Android phone into a webcam using scrcpy with a beautiful terminal UI.**
 
 camgo-scrcpy is a Go-based TUI application that provides an interactive interface for streaming your Android device's camera to a virtual v4l2 device, making it usable as a webcam in any application.

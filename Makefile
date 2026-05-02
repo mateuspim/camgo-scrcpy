@@ -1,6 +1,8 @@
-.PHONY: all build build-linux build-linux-arm64 build-all check clean dev deps fmt install lint release release-draft run test test-cover uninstall
+.PHONY: all build build-linux build-linux-arm64 build-all check clean dev deps fmt install install-local lint release release-draft run test test-cover uninstall uninstall-local
 
 APP_NAME := camgo-scrcpy
+PREFIX ?= $(HOME)/.local
+BIN_DIR ?= $(PREFIX)/bin
 VERSION := $(shell git describe --always --tags --dirty 2>/dev/null || echo "dev")
 BUILD_TIME := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
 LDFLAGS := -ldflags "-s -w -X main.version=$(VERSION) -X main.buildtime=$(BUILD_TIME)"
@@ -70,9 +72,17 @@ clean:
 install: build
 	install -Dm755 $(APP_NAME) /usr/local/bin/$(APP_NAME)
 
+# Install locally to ~/.local/bin so it is available on your PATH
+install-local: build
+	install -Dm755 $(APP_NAME) $(BIN_DIR)/$(APP_NAME)
+
 # Uninstall
 uninstall:
 	rm -f /usr/local/bin/$(APP_NAME)
+
+# Remove the local binary from ~/.local/bin
+uninstall-local:
+	rm -f $(BIN_DIR)/$(APP_NAME)
 
 # Full development setup
 dev: deps fmt lint test build

@@ -1,6 +1,7 @@
 .PHONY: all build build-linux build-linux-arm64 build-all check clean dev deps fmt install install-local lint release release-draft run test test-cover uninstall uninstall-local
 
 APP_NAME := camgo-scrcpy
+CMD_NAME ?= camgo
 PREFIX ?= $(HOME)/.local
 BIN_DIR ?= $(PREFIX)/bin
 VERSION := $(shell git describe --always --tags --dirty 2>/dev/null || echo "dev")
@@ -70,19 +71,19 @@ clean:
 
 # Install globally (requires sudo)
 install: build
-	install -Dm755 $(APP_NAME) /usr/local/bin/$(APP_NAME)
+	install -Dm755 $(APP_NAME) /usr/local/bin/$(CMD_NAME)
 
 # Install locally to ~/.local/bin so it is available on your PATH
 install-local: build
-	install -Dm755 $(APP_NAME) $(BIN_DIR)/$(APP_NAME)
+	install -Dm755 $(APP_NAME) $(BIN_DIR)/$(CMD_NAME)
 
 # Uninstall
 uninstall:
-	rm -f /usr/local/bin/$(APP_NAME)
+	rm -f /usr/local/bin/$(CMD_NAME)
 
 # Remove the local binary from ~/.local/bin
 uninstall-local:
-	rm -f $(BIN_DIR)/$(APP_NAME)
+	rm -f $(BIN_DIR)/$(CMD_NAME)
 
 # Full development setup
 dev: deps fmt lint test build

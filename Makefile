@@ -1,4 +1,4 @@
-.PHONY: build test clean install lint run deps
+.PHONY: all build build-linux build-linux-arm64 build-all check clean dev deps fmt install lint release release-draft run test test-cover uninstall
 
 APP_NAME := camgo-scrcpy
 VERSION := $(shell git describe --always --tags --dirty 2>/dev/null || echo "dev")
@@ -27,6 +27,12 @@ build-linux-arm64:
 # Build all platforms
 build-all: build-linux build-linux-arm64
 	@echo "Built for all platforms"
+
+# Run the full local verification flow
+all: deps fmt lint test build
+
+# Run the same checks we expect before merging
+check: fmt lint test build
 
 # Run the application
 run: build
@@ -69,7 +75,7 @@ uninstall:
 	rm -f /usr/local/bin/$(APP_NAME)
 
 # Full development setup
-dev: deps lint test build
+dev: deps fmt lint test build
 
 # Cross-compile for release
 release:

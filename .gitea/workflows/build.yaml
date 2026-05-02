@@ -24,13 +24,8 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
 
-      - name: Get dependencies
-        run: go mod download
-
       - name: Build
-        run: |
-          env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-              go build -ldflags="-s -w" -o ${{ env.APP_NAME }}-linux-amd64 .
+        run: make deps build-linux
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -51,14 +46,11 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
 
-      - name: Get dependencies
-        run: go mod download
+      - name: Run checks
+        run: make check
 
-      - name: Run go vet
-        run: go vet ./...
-
-      - name: Run tests
-        run: go test -v -race -coverprofile=coverage.out ./...
+      - name: Run coverage
+        run: env GOCACHE=/tmp/go-cache GOTMPDIR=/tmp go test -coverprofile=coverage.out ./...
 
       - name: Upload coverage
         uses: actions/upload-artifact@v3

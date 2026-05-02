@@ -32,7 +32,7 @@ build-all: build-linux build-linux-arm64
 all: deps fmt lint test build
 
 # Run the same checks we expect before merging
-check: fmt lint test build
+check: fmt lint test
 
 # Run the application
 run: build

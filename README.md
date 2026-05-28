@@ -36,14 +36,14 @@ camgo-scrcpy is a Go-based TUI application that provides an interactive interfac
 
 ```bash
 # Clone the repository
-git clone http://72.62.9.100:3000/pym/camgo-scrcpy.git
+git clone https://github.com/mateuspim/camgo-scrcpy.git
 cd camgo-scrcpy
 
 # Build the application
-go build -o camgo-scrcpy .
+go build -o camgo .
 
 # Install globally (optional)
-sudo mv camgo-scrcpy /usr/local/bin/
+sudo mv camgo /usr/local/bin/
 ```
 
 ## Usage
@@ -76,7 +76,7 @@ echo "v4l2loopback" | sudo tee /etc/modules-load.d/v4l2loopback.conf
 ### 3. Run camgo-scrcpy
 
 ```bash
-./camgo-scrcpy
+./camgo
 ```
 
 ### 4. Use as Webcam
